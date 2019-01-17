@@ -1,9 +1,9 @@
 package main
 
 import (
-	_ "github.com/zfinn/bootcobra/init"
+	_ "github.com/zfinn/t4cobra/init"
 
-	"github.com/zfinn/bootcobra/cmd"
+	"github.com/zfinn/t4cobra/cmd"
 )
 
 func main() {

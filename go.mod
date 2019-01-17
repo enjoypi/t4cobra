@@ -1,4 +1,4 @@
-module github.com/zfinn/bootcobra
+module github.com/zfinn/t4cobra
 
 require (
 	github.com/coreos/etcd v3.3.11+incompatible // indirect

@@ -22,7 +22,7 @@ func run(v *viper.Viper) error {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "bootcobra",
+	Use:   "t4cobra",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -60,7 +60,7 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.bootcobra.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.t4cobra.yaml)")
 	rootCmd.PersistentFlags().String("log.level", "info", "level of logrus")
 
 	// Cobra also supports local flags, which will only run
@@ -88,9 +88,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".bootcobra" (without extension).
+		// Search config in home directory with name ".t4cobra" (without extension).
 		v.AddConfigPath(home)
-		v.SetConfigName(".bootcobra")
+		v.SetConfigName(".t4cobra")
 	}
 
 	v.AutomaticEnv() // read in environment variables that match
