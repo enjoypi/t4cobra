@@ -1,41 +1,32 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
-	homedir "github.com/mitchellh/go-homedir"
+	//_ "github.com/spf13/viper/remote"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var (
-	cfgFile   string
-	rootViper = viper.New()
+	configFile           string
+	configRemoteEndpoint string
+	configRemotePath     string
+	configRemoteType     string
+	logLevel             string
+	rootViper            = viper.New()
 )
-
-func run(v *viper.Viper) error {
-	logrus.Info("all settings: ", v.AllSettings())
-	return fmt.Errorf("some error")
-}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "t4cobra",
-	Short: "A brief description of your application",
+	Short: "the template of cobra",
 	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+examples and usage of using your application`,
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	PreRunE: preRunE,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
-		//if err := rootViper.BindPFlags(cmd.Flags()); err != nil {
-		//	return err
-		//}
 		return run(rootViper)
 	},
 	SilenceErrors: true,
@@ -51,67 +42,86 @@ func Execute() {
 }
 
 func init() {
-	logrus.Trace("root.init")
-	defer func() {
-		logrus.Trace("root.init ok")
-	}()
-		cobra.OnInitialize(initConfig)
-
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.t4cobra.yaml)")
-	rootCmd.PersistentFlags().String("log.level", "info", "level of logrus")
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is $HOME/.t4cobra.yaml)")
+
+	rootCmd.PersistentFlags().StringVar(&configRemoteEndpoint,
+		"config.remote.endpoint",
+		"127.0.0.1:2379",
+		"the endpoint of remote config")
+	rootCmd.PersistentFlags().StringVar(&configRemoteType,
+		"config.remote.type",
+		"etcd",
+		"config file (default is $HOME/.t4cobra.yaml)")
+	rootCmd.PersistentFlags().StringVar(&configRemotePath,
+		"config.remote.path",
+		"/t4cobra/config",
+		"config file (default is $HOME/.t4cobra.yaml)")
+
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log.level", "info", "level of logrus")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().Bool("root.flag", true, "flag of root command")
+	rootCmd.Flags().Bool("version", false, "show version")
 }
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	logrus.Trace("root.initConfig")
-	defer func() {
-		logrus.Trace("root.initConfig ok")
-	}()
+func preRunE(cmd *cobra.Command, args []string) error {
+	// Viper uses the following precedence order. Each item takes precedence over the item below it:
+	//
+	// explicit call to Set
+	// flag
+	// env
+	// config
+	// key/value store
+	// default
+	//
+	// Viper configuration keys are case insensitive.
 
 	v := rootViper
 
-	if cfgFile != "" {
-		// Use config file from the flag.
-		v.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	// remote config
+	//if err := v.AddRemoteProvider(configRemoteType, configRemoteEndpoint, configRemotePath); err != nil {
+	//	return err
+	//}
+	//viper.SetConfigType("json")
+	//if err := v.ReadRemoteConfig(); err != nil {
+	//	return err
+	//}
 
-		// Search config in home directory with name ".t4cobra" (without extension).
-		v.AddConfigPath(home)
-		v.SetConfigName(".t4cobra")
+	// local config
+	if configFile != "" {
+		// Use config file from the flag.
+		v.SetConfigFile(configFile)
+
+		// If a config file is found, read it in.
+		if err := v.ReadInConfig(); err != nil {
+			return err
+		}
+		logrus.Debug("using config file: ", v.ConfigFileUsed())
+		logrus.Debug("settings in config file: ", v.AllSettings())
 	}
 
 	v.AutomaticEnv() // read in environment variables that match
 
-	// If a config file is found, read it in.
-	if err := v.ReadInConfig(); err == nil {
-		logrus.Info("Using config file: ", v.ConfigFileUsed())
-		logrus.Info("settings in config file: ", v.AllSettings())
+	ll := v.GetString("log.level")
+	if ll != "" {
+		logLevel = ll
 	}
 
-	if err:= v.BindPFlags(rootCmd.Flags()); err!=nil {
-		logrus.Fatal(err)
-	}
-
-	if lvl, err:=logrus.ParseLevel(v.GetString("log.level")); err == nil {
+	if lvl, err := logrus.ParseLevel(logLevel); err == nil {
 		logrus.SetLevel(lvl)
-	}else {
+	} else {
 		logrus.SetLevel(logrus.InfoLevel)
 		logrus.Warn(err)
 	}
 
+	if err := v.BindPFlags(cmd.Flags()); err != nil {
+		return err
+	}
+
 	logrus.Info("current log level: ", logrus.GetLevel())
-	logrus.Info("global settings:", v.AllSettings())
+	logrus.Debug("all settings: ", v.AllSettings())
+	return nil
 }

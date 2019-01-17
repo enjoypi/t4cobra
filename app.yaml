@@ -1,2 +1,7 @@
+etcd: 127.0.0.1:2379
+
 log:
   level: info
+
+server:
+  listenAddress: 0.0.0.0:0
