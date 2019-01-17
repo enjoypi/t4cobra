@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -18,7 +17,7 @@ type server struct {
 
 func run(v *viper.Viper) error {
 	var c cfgRoot
-	if err := mapstructure.Decode(v.AllSettings(), &c); err != nil {
+	if err := v.Unmarshal(&c); err != nil {
 		return err
 	}
 	logrus.Infof("settings: %+v", c)
