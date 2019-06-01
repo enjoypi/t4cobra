@@ -13,7 +13,6 @@ type cfgChild struct {
 
 type child struct {
 	Bool bool
-	Flag bool
 	Str  string
 }
 
