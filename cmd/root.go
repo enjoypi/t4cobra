@@ -49,12 +49,12 @@ func Execute() {
 
 func init() {
 	logrus.SetLevel(logrus.TraceLevel)
-	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true,DisableColors:true})
+	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true, DisableColors: true})
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVarP(&configFile, "config.file","c","", "config file")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config.file", "c", "", "config file")
 
 	rootCmd.PersistentFlags().StringVar(&configRemoteEndpoint,
 		"config.remote.endpoint",
@@ -66,7 +66,7 @@ func init() {
 		"the path of remote config")
 
 	rootCmd.PersistentFlags().StringVar(&configType, "config.type", "yaml", "the type of config format")
-	rootCmd.PersistentFlags().BoolP("verbose", "V",false,  "verbose")
+	rootCmd.PersistentFlags().BoolP("verbose", "V", false, "verbose")
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log.level", "info", "level of logrus")
 
