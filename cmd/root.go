@@ -3,8 +3,9 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"gopkg.in/yaml.v2"
 	"time"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/sirupsen/logrus"
@@ -47,14 +48,17 @@ func Execute() {
 }
 
 func init() {
+	logrus.SetLevel(logrus.TraceLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true,DisableColors:true})
+
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&configFile, "config.file", "", "config file")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config.file","c","", "config file")
 
 	rootCmd.PersistentFlags().StringVar(&configRemoteEndpoint,
 		"config.remote.endpoint",
-		"127.0.0.1:2379",
+		"", //"127.0.0.1:2379",
 		"the endpoint of remote config")
 	rootCmd.PersistentFlags().StringVar(&configRemotePath,
 		"config.remote.path",
@@ -62,6 +66,7 @@ func init() {
 		"the path of remote config")
 
 	rootCmd.PersistentFlags().StringVar(&configType, "config.type", "yaml", "the type of config format")
+	rootCmd.PersistentFlags().BoolP("verbose", "V",false,  "verbose")
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log.level", "info", "level of logrus")
 
@@ -71,9 +76,13 @@ func init() {
 }
 
 func preRunE(cmd *cobra.Command, args []string) error {
+
 	// use flag log.level
 	if lvl, err := logrus.ParseLevel(logLevel); err == nil {
 		logrus.SetLevel(lvl)
+		if lvl == logrus.TraceLevel {
+			logrus.SetReportCaller(true)
+		}
 	}
 
 	// Viper uses the following precedence order. Each item takes precedence over the item below it:
@@ -129,6 +138,10 @@ func preRunE(cmd *cobra.Command, args []string) error {
 }
 
 func initRemoteConfig(v *viper.Viper) {
+	if configRemoteEndpoint == "" {
+		return
+	}
+
 	logrus.Info("reading from ", configRemoteEndpoint)
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{configRemoteEndpoint},
@@ -155,7 +168,7 @@ func initRemoteConfig(v *viper.Viper) {
 	}
 }
 
-func showConfig(v*viper.Viper)  {
+func showConfig(v *viper.Viper) {
 	if out, err := yaml.Marshal(v.AllSettings()); err == nil {
 		logrus.Debug("all settings:\n", string(out))
 	} else {

@@ -21,5 +21,4 @@ func init() {
 
 	childCmd.Flags().String("child.str", "child string", "string flag for child")
 	childCmd.Flags().BoolP("child.bool", "b", false, "bool flag for child")
-	childCmd.Flags().BoolP("child.flag", "f", true, "flag for child")
 }
